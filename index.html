@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Voice Of The Market | Rider NPS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<style>
+:root{
+  --bg:#eef2f6;--card:#ffffff;--text:#061625;--muted:#617083;--line:#dce3eb;
+  --navy:#071827;--navy2:#0d2638;--green:#11CC9A;--yellow:#FFE41F;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;
+  --shadow:0 16px 38px rgba(7,24,39,.10);--radius:18px;--soft:#f8fafc;
+}
+body.dark{--bg:#07111c;--card:#0c1b2a;--text:#eaf2f8;--muted:#9fb0c4;--line:#20374c;--soft:#102235;--shadow:0 16px 38px rgba(0,0,0,.35)}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;font-size:13px}
+.topbar{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,var(--navy),#09283b);color:#fff;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 12px 30px rgba(0,0,0,.22)}
+.brand h1{margin:0;font-size:24px;letter-spacing:-.04em}.brand p{margin:5px 0 0;color:rgba(255,255,255,.76)}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.upload{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;min-width:210px}.upload label{display:block;font-size:10px;font-weight:900;letter-spacing:.07em;color:rgba(255,255,255,.74);text-transform:uppercase;margin-bottom:4px}.upload input{max-width:190px;color:#fff;font-size:11px}.pill{border:0;border-radius:999px;background:var(--yellow);color:#111827;padding:10px 13px;font-weight:900;font-size:12px;cursor:pointer}.pill.darkbtn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18)}
+.wrap{max-width:1580px;margin:0 auto;padding:20px}.alert{background:linear-gradient(135deg,rgba(255,228,31,.34),rgba(17,204,154,.12));border:1px solid rgba(245,158,11,.35);border-radius:16px;padding:13px 15px;margin-bottom:16px;font-weight:700;line-height:1.45}.alert b{color:var(--navy)} body.dark .alert b{color:#fff}
+.filters{display:grid;grid-template-columns:repeat(6,minmax(145px,1fr));gap:12px;margin-bottom:14px}.filter{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:10px 12px;box-shadow:var(--shadow)}.filter label{display:block;font-size:10px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}select{width:100%;border:0;background:transparent;color:var(--text);font-weight:800;outline:none}body.dark select option{background:#0c1b2a;color:#fff}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}.tabbtn{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:9px 14px;font-weight:900;cursor:pointer;box-shadow:0 7px 18px rgba(7,24,39,.06)}.tabbtn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(6,1fr)}.two{grid-template-columns:1fr 1fr}.three{grid-template-columns:repeat(3,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px;min-height:110px}.card h3{margin:0 0 7px;font-size:16px;letter-spacing:-.02em}.sub{color:var(--muted);margin:0 0 12px}.kpi .label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900}.kpi .value{font-size:32px;letter-spacing:-.06em;font-weight:950;margin-top:8px}.kpi .note{color:var(--muted);line-height:1.35}.good{color:var(--green)!important}.bad{color:var(--red)!important}.warn{color:var(--amber)!important}
+.chart{height:365px;position:relative}.chart.tall{height:470px}.chart.small{height:270px}.tablewrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse;background:var(--card)}th,td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{position:sticky;top:0;z-index:1;background:var(--soft);font-size:10px;text-transform:uppercase;letter-spacing:.06em;text-align:left}tr:hover td{background:rgba(17,204,154,.05)}.tag{display:inline-flex;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900}.tg{background:rgba(17,204,154,.14);color:#047857}.ty{background:rgba(255,228,31,.45);color:#7a5800}.tr{background:rgba(239,68,68,.15);color:#b91c1c}.tb{background:rgba(59,130,246,.14);color:#1d4ed8}
+.tab{display:none}.tab.active{display:block}.empty{border:1px dashed var(--line);border-radius:18px;background:var(--card);padding:55px 20px;text-align:center;color:var(--muted);font-size:16px}.mapgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mini{font-size:11px;color:var(--muted)}
+.insight{border-left:5px solid var(--green);background:linear-gradient(135deg,rgba(17,204,154,.10),rgba(255,228,31,.16));padding:12px 14px;border-radius:12px;font-weight:750;line-height:1.45}
+@media(max-width:1100px){.filters,.kpis,.two,.three,.mapgrid{grid-template-columns:1fr}.topbar{position:relative;align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}.chart{height:320px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><h1>Voice Of The Market | Rider NPS</h1><p>Rider sentiment × operational behavior × partner / zone accountability</p></div>
+  <div class="actions">
+    <div class="upload"><label>Upload Rider NPS Excel</label><input type="file" id="npsFile" accept=".xlsx,.xls,.csv"></div>
+    <div class="upload"><label>Upload UAE Daily Valid Excel</label><input type="file" id="perfFile" accept=".xlsx,.xls,.csv"></div>
+    <button class="pill darkbtn" id="themeToggle">Dark mode</button>
+    <button class="pill darkbtn" id="mappingToggle">Advanced mapping</button>
+    <button class="pill darkbtn" id="exportStatic">Export view-only HTML</button>
+    <div class="pill" id="status">Upload files</div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="alert" id="dataAlert">Upload the NPS file first. Upload the Daily Valid report to unlock performance matching. If Rider ID in the NPS file is missing or shows #NAME?, performance analysis cannot match because the Daily Valid report does not contain rider phone numbers.</div>
+
+  <div class="card" id="mappingCard" style="display:none;margin-bottom:16px">
+    <h3>Column Mapping & Data Confidence</h3><p class="sub">Auto-detected from headers. Change any field if the file format changes, then click Rebuild.</p>
+    <div class="mapgrid" id="mappingGrid"></div>
+    <button class="pill" style="margin-top:12px" id="rebuildBtn">Rebuild Dashboard</button>
+  </div>
+
+  <div class="filters">
+    <div class="filter"><label>Month</label><select id="monthFilter"></select></div>
+    <div class="filter"><label>Emirate / City</label><select id="emirateFilter"></select></div>
+    <div class="filter"><label>Zone</label><select id="zoneFilter"></select></div>
+    <div class="filter"><label>Partner</label><select id="partnerFilter"></select></div>
+    <div class="filter"><label>Rider Segment</label><select id="segmentFilter"></select></div>
+    <div class="filter"><label>Theme</label><select id="themeFilter"></select></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tabbtn active" data-tab="exec">Executive</button><button class="tabbtn" data-tab="drivers">MoM Drivers</button><button class="tabbtn" data-tab="perf">Sentiment × Performance</button><button class="tabbtn" data-tab="shift">Shift / Zone</button><button class="tabbtn" data-tab="partner">Partner</button><button class="tabbtn" data-tab="corr">Correlations</button><button class="tabbtn" data-tab="themes">Themes</button><button class="tabbtn" data-tab="risk">Rider Risk</button><button class="tabbtn" data-tab="quality">Data Quality</button>
+  </div>
+
+  <div id="empty" class="empty">Dashboard will populate after file upload.</div>
+  <div id="dash" style="display:none">
+    <section id="exec" class="tab active">
+      <div class="grid kpis" id="kpiCards"></div>
+      <div class="grid two" style="margin-top:16px"><div class="card"><h3>RSAT MoM Trend</h3><p class="sub">Average recommendation score converted to 0–100</p><div class="chart"><canvas id="cRsat"></canvas></div></div><div class="card"><h3>Rating Mix by Month</h3><p class="sub">Detractors / neutrals / promoters by month; hover shows share and count</p><div class="chart"><canvas id="cMix"></canvas></div></div></div>
+      <div class="grid two" style="margin-top:16px"><div class="card"><h3>Operating Driver Movement</h3><p class="sub">What actually moved MoM, not just the total score</p><div class="chart"><canvas id="cDriverMove"></canvas></div></div><div class="card"><h3>Strategic Readout</h3><div id="execInsight" class="insight"></div><div class="tablewrap" id="execTable" style="margin-top:14px"></div></div></div>
+    </section>
+    <section id="drivers" class="tab"><div class="grid two"><div class="card"><h3>MoM Driver Change</h3><p class="sub">Percentage-point movement, April vs May; sorted by highest improvement first</p><div class="chart tall"><canvas id="cMom"></canvas></div></div><div class="card"><h3>Driver Score Table</h3><div class="tablewrap" id="momTable"></div></div></div><div class="card" style="margin-top:16px"><h3>What Is Driving Detractors?</h3><p class="sub">Among riders with RSAT below 60%, the lowest-rated drivers show the most painful experience gaps</p><div class="tablewrap" id="detractorTable"></div></div></section>
+    <section id="perf" class="tab"><div class="grid two"><div class="card"><h3>RSAT by Valid-Day Band</h3><p class="sub">Do more consistent riders feel differently?</p><div class="chart"><canvas id="cValidBand"></canvas></div></div><div class="card"><h3>RSAT by Working-Hour Band</h3><p class="sub">Sentiment by actual activity intensity</p><div class="chart"><canvas id="cHourBand"></canvas></div></div></div><div class="grid two" style="margin-top:16px"><div class="card"><h3>RSAT vs Delivered Tasks</h3><p class="sub">Each point = matched rider response; bubble size = average online hours/day</p><div class="chart tall"><canvas id="cTasks"></canvas></div></div><div class="card"><h3>Earnings Satisfaction vs Delivered Orders</h3><p class="sub">Each point = matched rider response; bubble size = average online hours/day</p><div class="chart tall"><canvas id="cEarnOrders"></canvas></div></div></div></section>
+    <section id="shift" class="tab"><div class="grid two"><div class="card"><h3>Lowest Shift-Availability Zones</h3><p class="sub">May only; sorted from most problematic to strongest based on rider shift score</p><div class="chart tall"><canvas id="cShiftHours"></canvas></div></div><div class="card"><h3>Zone Shift Diagnostic</h3><p class="sub">Directional sorting: worst shift score first; use response count to judge reliability</p><div class="tablewrap" id="zoneTable"></div></div></div></section>
+    <section id="partner" class="tab"><div class="grid two"><div class="card"><h3>Partner RSAT vs 3PL Support</h3><p class="sub">Bubble = response count; distinguishes platform vs partner experience</p><div class="chart tall"><canvas id="cPartner"></canvas></div></div><div class="card"><h3>Partner Accountability Table</h3><div class="tablewrap" id="partnerTable"></div></div></div></section>
+    <section id="corr" class="tab"><div class="grid two"><div class="card"><h3>What Correlates Most With RSAT?</h3><p class="sub">Pearson correlation; directional where sample is small</p><div class="chart tall"><canvas id="cCorr"></canvas></div></div><div class="card"><h3>Correlation Readout</h3><div id="corrInsight" class="insight"></div><div class="tablewrap" id="corrTable" style="margin-top:14px"></div></div></div></section>
+    <section id="themes" class="tab"><div class="grid two"><div class="card"><h3>Theme Volume</h3><p class="sub">Click a bar to filter the comment table to that theme</p><div class="chart tall"><canvas id="cThemeVol"></canvas></div></div><div class="card"><h3>Theme Severity</h3><p class="sub">Lower RSAT = more painful theme</p><div class="chart tall"><canvas id="cThemeSev"></canvas></div></div></div><div class="card" style="margin-top:16px"><h3>Rider Voice Table</h3><p class="sub">Exact rider sentences with rider, partner, city, score, behavior and theme</p><div class="tablewrap" id="themeTable"></div></div></section>
+    <section id="risk" class="tab"><div class="grid"><div class="card"><h3>High-Value / Operationally Blocked Riders</h3><p class="sub">Action table for PMM / partner follow-up. Operationally blocked = low shift score and low actual working hours. April shift score shows “Not asked” because shift availability was a May-only question.</p><div class="tablewrap" id="riskTable"></div></div></div></section>
+    <section id="quality" class="tab"><div class="grid two"><div class="card"><h3>Data Quality Summary</h3><div class="tablewrap" id="qualityTable"></div></div><div class="card"><h3>Unmatched / Missing Matching Key</h3><div class="tablewrap" id="unmatchedTable"></div></div></div></section>
+  </div>
+</div>
+<script>
+let npsRows=[], perfRows=[], nps=[], perfMap=new Map(), joined=[], charts={}, selectedTheme=null;
+let npsHeaders=[], perfHeaders=[], mappings={nps:{},perf:{}};
+const C={green:'#11CC9A',yellow:'#FFE41F',red:'#ef4444',amber:'#f59e0b',blue:'#3b82f6',navy:'#071827',gray:'#94a3b8'};
+const byId=id=>document.getElementById(id);
+
+byId('themeToggle').onclick=()=>{document.body.classList.toggle('dark');byId('themeToggle').textContent=document.body.classList.contains('dark')?'Light mode':'Dark mode';renderAll();};
+byId('mappingToggle').onclick=()=>{const c=byId('mappingCard');c.style.display=c.style.display==='none'?'block':'none';};
+byId('exportStatic').onclick=()=>exportViewOnlyHTML();
+byId('npsFile').onchange=async e=>{if(!e.target.files[0])return;setStatus('Reading NPS file...');npsRows=await readFile(e.target.files[0]);npsHeaders=(npsRows[0]||[]).map(String);autoMap();buildMappingUI();rebuild();};
+byId('perfFile').onchange=async e=>{if(!e.target.files[0])return;setStatus('Reading Daily Valid report...');setTimeout(async()=>{perfRows=await readFile(e.target.files[0]);perfHeaders=(perfRows[0]||[]).map(String);autoMap();buildMappingUI();setStatus('Aggregating rider performance...');setTimeout(()=>rebuild(),60);},60);};
+byId('rebuildBtn').onclick=()=>{readMappingUI();rebuild();};
+
+async function readFile(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=x=>{const wb=XLSX.read(new Uint8Array(x.target.result),{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];res(XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true}));};fr.onerror=rej;fr.readAsArrayBuffer(file);});}
+function setStatus(t){byId('status').textContent=t;}
+function autoMap(){
+  const exact=(headers,names)=>{const H=headers.map(h=>String(h||'').trim().toLowerCase()); for(const name of names){const i=H.findIndex(h=>h===String(name).trim().toLowerCase()); if(i>-1)return i;} return -1;};
+  const contains=(headers,aliases)=>{const H=headers.map(h=>norm(h)); for(const al of aliases){const a=al.map(norm); const i=H.findIndex(h=>a.every(x=>(' '+h+' ').includes(' '+x+' ') || h.includes(x))); if(i>-1)return i;} return -1;};
+  if(npsHeaders.length){
+    mappings.nps={
+      aprPhone:1,aprRsat:2,aprEarn:3,aprOrders:4,aprAssign:5,aprStack:6,aprOnTime:7,aprAppealClear:8,aprAppealResult:9,aprSupport:10,aprRules:11,aprSafety:12,aprSalary:13,aprKeetaValue:14,apr3pl:15,aprCompare:16,aprLike:17,aprImprove:18,aprVendor:19,aprCity:20,
+      mayPhone:21,mayRsat:22,mayEarn:23,mayOrders:24,mayShift:25,mayOnTime:26,mayAppealClear:27,mayAppealResult:28,maySupport:29,mayApp:30,maySafety:31,maySalary:32,may3pl:33,mayVendor:34,mayLike:35,mayImprove:36,
+      cleanPhone: exact(npsHeaders,['Cleaned phone number','Cleaned phone number (copy)'])>-1?exact(npsHeaders,['Cleaned phone number','Cleaned phone number (copy)']):38,
+      riderId: exact(npsHeaders,['Rider ID'])>-1?exact(npsHeaders,['Rider ID']):40,
+      partner: exact(npsHeaders,['Partner Name'])>-1?exact(npsHeaders,['Partner Name']):41,
+      lastActive: exact(npsHeaders,['Last active date'])>-1?exact(npsHeaders,['Last active date']):42,
+      vehicle: exact(npsHeaders,['Vehicle Type'])>-1?exact(npsHeaders,['Vehicle Type']):43,
+      emirate: exact(npsHeaders,['Emirate'])>-1?exact(npsHeaders,['Emirate']):44,
+      zone: exact(npsHeaders,['Zone'])>-1?exact(npsHeaders,['Zone']):45
+    };
+  }
+  if(perfHeaders.length){
+    mappings.perf={
+      city: exact(perfHeaders,['City']),
+      partner: exact(perfHeaders,['3PL Name']),
+      pmm: exact(perfHeaders,['3PL PMM']),
+      riderId: exact(perfHeaders,['Rider ID']),
+      vehicle: exact(perfHeaders,['Vehicle Type']),
+      date: exact(perfHeaders,['Online Day']),
+      vda: exact(perfHeaders,['VDA']),
+      hours: exact(perfHeaders,['Natutal Day Online hours','Natural Day Online hours']),
+      validShifts: exact(perfHeaders,['Sum of Valid Shifts']),
+      scheduledShifts: exact(perfHeaders,['Sum of Scheduled Shifts']),
+      onlineSched: exact(perfHeaders,['Sum of Online Scheduled Shifts']),
+      tasks: exact(perfHeaders,['Sum of total delivered tasks']),
+      orders: exact(perfHeaders,['Delivered orders']),
+      accepted: exact(perfHeaders,['Accepted orders']),
+      paid: exact(perfHeaders,['paid order','Paid order']),
+      cancel: exact(perfHeaders,['Cancellation(D)']),
+      over55: exact(perfHeaders,['Delivered orders over 55min'])
+    };
+    Object.keys(mappings.perf).forEach(k=>{ if(mappings.perf[k]===-1){
+      const fall={city:[['city']],partner:[['3pl','name']],pmm:[['3pl','pmm']],riderId:[['rider','id']],vehicle:[['vehicle','type']],date:[['online','day']],vda:[['vda']],hours:[['online','hours']],validShifts:[['valid','shifts']],scheduledShifts:[['scheduled','shifts']],onlineSched:[['online','scheduled']],tasks:[['total','delivered','tasks']],orders:[['delivered','orders']],accepted:[['accepted','orders']],paid:[['paid','order']],cancel:[['cancellation']],over55:[['55min']]};
+      mappings.perf[k]=contains(perfHeaders,fall[k]||[]);
+    }});
+  }
+}
+function buildMappingUI(){
+  if(!npsHeaders.length&&!perfHeaders.length)return; /* mapping stays hidden unless Advanced mapping is clicked */
+  const fields=[['NPS Rider ID','nps.riderId',npsHeaders],['NPS Partner','nps.partner',npsHeaders],['NPS Emirate','nps.emirate',npsHeaders],['NPS Zone','nps.zone',npsHeaders],['Perf Rider ID','perf.riderId',perfHeaders],['Perf Partner','perf.partner',perfHeaders],['Perf City','perf.city',perfHeaders],['Perf Hours','perf.hours',perfHeaders],['Perf Delivered Tasks','perf.tasks',perfHeaders],['Perf Delivered Orders','perf.orders',perfHeaders],['Perf VDA','perf.vda',perfHeaders],['Perf Online Day','perf.date',perfHeaders]];
+  byId('mappingGrid').innerHTML=fields.map(([label,key,headers])=>{const [grp,f]=key.split('.');const cur=mappings[grp]?.[f]??-1;return `<div class="filter"><label>${label}</label><select data-map="${key}"><option value="-1">Not available</option>${headers.map((h,i)=>`<option value="${i}" ${i===cur?'selected':''}>${colName(i)} - ${esc(short(h,55))}</option>`).join('')}</select></div>`}).join('');
+}
+function readMappingUI(){document.querySelectorAll('[data-map]').forEach(s=>{const [g,f]=s.dataset.map.split('.');mappings[g][f]=Number(s.value);});}
+function rebuild(){readMappingUI();nps=parseNPS();perfMap=parsePerf();joinData();setupFilters();setStatus(nps.length&&perfRows.length?'NPS + Performance loaded':nps.length?'NPS loaded':'Upload files');renderDashboard();}
+
+function parseNPS(){if(npsRows.length<2)return[];const m=mappings.nps, out=[];for(let i=1;i<npsRows.length;i++){const r=npsRows[i];const enrich={riderId:cleanId(v(r,m.riderId)),partner:txt(v(r,m.partner)),lastActive:dateKey(v(r,m.lastActive)),vehicle:txt(v(r,m.vehicle)),emirate:txt(v(r,m.emirate)),zone:txt(v(r,m.zone)),cleanPhone:phone(v(r,m.cleanPhone))};
+  if(v(r,m.aprPhone)||num(v(r,m.aprRsat))!==null) out.push(makeNps('April',r,i,m.aprPhone,m.aprRsat,10,{earn:m.aprEarn,orders:m.aprOrders,onTime:m.aprOnTime,appealClear:m.aprAppealClear,appealResult:m.aprAppealResult,support:m.aprSupport,safety:m.aprSafety,salary:m.aprSalary,threepl:m.apr3pl,vendor:m.aprVendor,like:m.aprLike,improve:m.aprImprove,city:m.aprCity},enrich));
+  if(v(r,m.mayPhone)||num(v(r,m.mayRsat))!==null) out.push(makeNps('May',r,i,m.mayPhone,m.mayRsat,5,{earn:m.mayEarn,orders:m.mayOrders,shift:m.mayShift,onTime:m.mayOnTime,appealClear:m.mayAppealClear,appealResult:m.mayAppealResult,support:m.maySupport,app:m.mayApp,safety:m.maySafety,salary:m.maySalary,threepl:m.may3pl,vendor:m.mayVendor,like:m.mayLike,improve:m.mayImprove},enrich));
+}return out.filter(x=>x.rsat!==null||x.phone||x.riderId);}
+function makeNps(month,r,row,pcol,rscol,rsmax,cols,e){const like=txt(v(r,cols.like)), imp=txt(v(r,cols.improve)), comment=[like,imp].filter(Boolean).join(' | ');return{month,row:row+1,rawPhone:v(r,pcol),phone:phone(v(r,pcol))||e.cleanPhone,riderId:e.riderId,partner:e.partner||'Unknown',emirate:e.emirate||txt(v(r,cols.city))||'Unknown',zone:e.zone||'Unknown',vehicle:e.vehicle||'Unknown',lastActive:e.lastActive,rsat:score(v(r,rscol),rsmax),earnings:score(v(r,cols.earn),5),enoughOrders:score(v(r,cols.orders),5),shift:score(v(r,cols.shift),5),onTime:score(v(r,cols.onTime),5),appealClear:score(v(r,cols.appealClear),5),appealResult:score(v(r,cols.appealResult),5),support:score(v(r,cols.support),5),safety:score(v(r,cols.safety),5),salary:score(v(r,cols.salary),5),threepl:score(v(r,cols.threepl),5),vendor:score(v(r,cols.vendor),5),app:score(v(r,cols.app),5),like,improve:imp,comment,theme:theme(comment),sentiment:sentiment(score(v(r,rscol),rsmax),comment)};}
+function parsePerf(){const map=new Map(); if(perfRows.length<2)return map;const m=mappings.perf; const dateSet=new Set(); for(let i=1;i<perfRows.length;i++){const r=perfRows[i], id=cleanId(v(r,m.riderId)); if(!id)continue; const d=dateKey(v(r,m.date)); if(d)dateSet.add(d); const hours=num(v(r,m.hours))||0, orders=num(v(r,m.orders))||0, tasks=num(v(r,m.tasks))||0, vda=num(v(r,m.vda))||0; if(!map.has(id))map.set(id,{riderId:id,partner:txt(v(r,m.partner)),city:txt(v(r,m.city)),vehicle:txt(v(r,m.vehicle)),days:new Set(),active:new Set(),hours:0,orders:0,tasks:0,vdaDays:0,validShifts:0,scheduledShifts:0,onlineSched:0,accepted:0,paid:0,cancel:0,over55:0,lastActive:''}); const o=map.get(id); if(!o.partner)o.partner=txt(v(r,m.partner)); if(!o.city)o.city=txt(v(r,m.city)); if(!o.vehicle)o.vehicle=txt(v(r,m.vehicle)); if(d)o.days.add(d); if(d&&(hours>0||orders>0||tasks>0)){o.active.add(d); if(!o.lastActive||d>o.lastActive)o.lastActive=d;} o.hours+=hours;o.orders+=orders;o.tasks+=tasks;o.vdaDays+=vda>0?1:0;o.validShifts+=num(v(r,m.validShifts))||0;o.scheduledShifts+=num(v(r,m.scheduledShifts))||0;o.onlineSched+=num(v(r,m.onlineSched))||0;o.accepted+=num(v(r,m.accepted))||0;o.paid+=num(v(r,m.paid))||0;o.cancel+=num(v(r,m.cancel))||0;o.over55+=num(v(r,m.over55))||0;}
+  const cal=Math.max(dateSet.size,1), arr=[...map.values()]; arr.forEach(o=>{o.calendarDays=cal;o.activeDays=o.active.size;o.avgHoursActive=div(o.hours,o.activeDays);o.avgHoursCalendar=div(o.hours,cal);o.avgOrdersActive=div(o.orders,o.activeDays);o.avgTasksActive=div(o.tasks,o.activeDays);o.validRate=div(o.vdaDays,cal)*100;o.productivity=div(o.orders,o.hours);o.shiftOnlineRate=div(o.onlineSched,o.scheduledShifts)*100;}); segmentPerf(arr); const out=new Map(); arr.forEach(o=>out.set(o.riderId,o));return out;}
+function segmentPerf(arr){const qs=k=>quantiles(arr.map(x=>x[k]).filter(finite)); const q={valid:qs('validRate'),orders:qs('avgOrdersActive'),hours:qs('avgHoursActive'),prod:qs('productivity')}; arr.forEach(x=>{x.perfScore=.4*normRange(x.validRate,q.valid)+.3*normRange(x.avgOrdersActive,q.orders)+.2*normRange(x.avgHoursActive,q.hours)+.1*normRange(x.productivity,q.prod);}); const scoreQ=quantiles(arr.map(x=>x.perfScore).filter(finite)); arr.forEach(x=>x.perfSegment=x.perfScore>=scoreQ.q75?'Top Performer':x.perfScore<=scoreQ.q25?'Low Performer':'Mid Performer');}
+function joinData(){joined=nps.map(d=>{const p=d.riderId?perfMap.get(d.riderId):null;const j={...d,matched:!!p,perf:p||{},partner:d.partner&&d.partner!=='Unknown'?d.partner:(p?.partner||'Unknown'),emirate:d.emirate&&d.emirate!=='Unknown'?d.emirate:(p?.city||'Unknown'),vehicle:d.vehicle&&d.vehicle!=='Unknown'?d.vehicle:(p?.vehicle||'Unknown'),segment:p?.perfSegment||'Unmatched',hours:p?.hours??null,orders:p?.orders??null,tasks:p?.tasks??null,activeDays:p?.activeDays??null,validDays:p?.vdaDays??null,validRate:p?.validRate??null,avgHoursCalendar:p?.avgHoursCalendar??null,avgHoursActive:p?.avgHoursActive??null,avgOrdersActive:p?.avgOrdersActive??null,avgTasksActive:p?.avgTasksActive??null,productivity:p?.productivity??null,lastActiveFinal:d.lastActive||p?.lastActive||''};j.risk=risk(j);return j;});}
+function risk(d){if(!d.matched)return 'Unmatched';if(d.segment==='Top Performer'&&d.rsat<65)return 'High-Value At Risk';if(d.rsat<60&&d.activeDays<=7)return 'High Risk';if(d.shift!==null&&d.shift<60&&d.avgHoursCalendar<5)return 'Operationally Blocked';if(d.rsat<75||d.activeDays<=10)return 'Watchlist';return 'Stable';}
+
+function setupFilters(){const f=[['monthFilter','month'],['emirateFilter','emirate'],['zoneFilter','zone'],['partnerFilter','partner'],['segmentFilter','segment'],['themeFilter','theme']];f.forEach(([id,k])=>{const cur=byId(id).value||'All';const opts=['All',...uniq(joined.map(x=>x[k]).filter(Boolean))];byId(id).innerHTML=opts.map(o=>`<option ${o===cur?'selected':''}>${esc(o)}</option>`).join('');byId(id).onchange=()=>{if(id==='themeFilter')selectedTheme=null;renderAll();};});}
+function filtered(){const get=id=>byId(id).value||'All';return joined.filter(d=>(get('monthFilter')==='All'||d.month===get('monthFilter'))&&(get('emirateFilter')==='All'||d.emirate===get('emirateFilter'))&&(get('zoneFilter')==='All'||d.zone===get('zoneFilter'))&&(get('partnerFilter')==='All'||d.partner===get('partnerFilter'))&&(get('segmentFilter')==='All'||d.segment===get('segmentFilter'))&&(get('themeFilter')==='All'||d.theme===get('themeFilter'))&&(!selectedTheme||d.theme===selectedTheme));}
+function renderDashboard(){if(!joined.length){byId('empty').style.display='block';byId('dash').style.display='none';return;}byId('empty').style.display='none';byId('dash').style.display='block';renderAll();}
+function renderAll(){if(!joined.length)return;const d=filtered();renderAlert();renderKPIs(d);renderExec(d);renderMoM(d);renderPerformance(d);renderShift(d);renderPartner(d);renderCorr(d);renderThemes(d);renderRisk(d);renderQuality(d);}
+function renderAlert(){
+  const missing=joined.filter(x=>!x.riderId).length, matched=joined.filter(x=>x.matched).length, total=joined.length;
+  const npsRiderMap=mappings.nps?.riderId;
+  const perfRiderMap=mappings.perf?.riderId;
+  const npsRiderName=npsHeaders[npsRiderMap]||'Not mapped';
+  const perfRiderName=perfHeaders[perfRiderMap]||'Not mapped';
+  let msg=`Loaded ${total} survey responses. ${matched} are matched to Daily Valid performance data. NPS Rider ID mapped to: ${colName(npsRiderMap)} - ${npsRiderName}. Performance Rider ID mapped to: ${colName(perfRiderMap)} - ${perfRiderName}.`;
+  if(missing>0) msg+=` ${missing} NPS responses still have blank/error Rider ID values in the mapped Rider ID column, so they cannot match to rider performance.`;
+  if(perfRows.length&&matched===0) msg+=` If the mapping is AO - Rider ID and G - Rider ID but match is still 0, the NPS Rider ID column has no actual values. Paste AO:AT as values in Google Sheets before exporting.`;
+  byId('dataAlert').textContent=msg;
+}
+function renderKPIs(d){const apr=joined.filter(x=>x.month==='April'), may=joined.filter(x=>x.month==='May');const a=avg(apr.map(x=>x.rsat)), m=avg(may.map(x=>x.rsat));const top=avg(d.filter(x=>x.segment==='Top Performer').map(x=>x.rsat)), hv=d.filter(x=>x.risk==='High-Value At Risk').length;const topTheme=topCount(d.filter(x=>!['No Comment','Positive / General'].includes(x.theme)),'theme');const lowShare=div(d.filter(x=>finite(x.rsat)&&x.rsat<60).length,d.filter(x=>finite(x.rsat)).length)*100;const cards=[['RSAT',pct(avg(d.map(x=>x.rsat))),`${d.length} responses in selected view`],['MoM Δ',pp(m-a),`April ${pct(a)} → May ${pct(m)}`,m-a>=0?'good':'bad'],['Low RSAT Share',pct(lowShare),'Share of riders rating below 60%',lowShare>35?'bad':lowShare>20?'warn':'good'],['Top Performer RSAT',pct(top),'Based on matched Daily Valid riders'],['High-Value At Risk',hv,`Top performers with low RSAT`,hv?'bad':'good'],['Top Issue Theme',topTheme.label||'N/A',`${topTheme.count||0} comments in theme`]];byId('kpiCards').innerHTML=cards.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value ${c[3]||''}">${c[1]}</div><div class="note">${c[2]}</div></div>`).join('');}
+function renderExec(d){
+  const month=groups(joined,'month').map(g=>({label:g.key,avg:avg(g.items.map(x=>x.rsat)),n:g.items.length})).sort((a,b)=>a.label==='April'?-1:1);
+  chart('cRsat','bar',{labels:month.map(x=>x.label),datasets:[
+    {type:'bar',label:'Responses',data:month.map(x=>x.n),backgroundColor:'rgba(148,163,184,.22)',borderRadius:10,yAxisID:'y1',meta:month},
+    {type:'line',label:'RSAT',data:month.map(x=>round(x.avg)),borderColor:C.green,backgroundColor:'rgba(17,204,154,.20)',fill:false,tension:.35,pointRadius:5,yAxisID:'y',meta:month}
+  ]},{yTitle:'RSAT',yPercent:true,scales:{
+    x:{grid:{color:'rgba(148,163,184,.18)'}},
+    y:{position:'left',min:0,max:100,title:{display:true,text:'RSAT',font:{weight:'bold'}},ticks:{callback:v=>v+'%'}},
+    y1:{position:'right',title:{display:true,text:'Responses',font:{weight:'bold'}},grid:{drawOnChartArea:false}}
+  },tooltipTitle:'Month'});
+
+  const months=['April','May'];
+  const detractors=months.map(m=>joined.filter(x=>x.month===m&&x.rsat<60).length);
+  const neutrals=months.map(m=>joined.filter(x=>x.month===m&&x.rsat>=60&&x.rsat<80).length);
+  const promoters=months.map(m=>joined.filter(x=>x.month===m&&x.rsat>=80).length);
+  stack('cMix',months,[
+    {label:'Detractors <60',data:detractors,backgroundColor:C.red},
+    {label:'Neutrals 60–79',data:neutrals,backgroundColor:C.yellow},
+    {label:'Promoters 80–100',data:promoters,backgroundColor:C.green}
+  ], true);
+
+  const drivers=driverRows();
+  barH('cDriverMove',drivers.map(x=>x.driver),drivers.map(x=>round(x.change)), 'pp change', true, false, drivers.map(x=>`${x.driver}: ${pp(x.change)} | Apr ${pct(x.apr)} → May ${pct(x.may)} | n=${x.nApr}/${x.nMay}`));
+  const highest=drivers[0], lowest=drivers.slice().sort((a,b)=>a.change-b.change)[0];const theme=topCount(d.filter(x=>!['No Comment','Positive / General'].includes(x.theme)),'theme');
+  byId('execInsight').innerHTML=`<b>What matters:</b> RSAT is ${pct(avg(d.map(x=>x.rsat)))} in the selected view. Biggest MoM gain is <b>${highest?.driver||'N/A'}</b> (${pp(highest?.change)}); weakest movement is <b>${lowest?.driver||'N/A'}</b> (${pp(lowest?.change)}). Top open-text pressure area is <b>${theme.label||'N/A'}</b>.`;
+  byId('execTable').innerHTML=table(['Business Question','Dashboard Signal'],[['Is sentiment improving? ',`MoM RSAT: ${pp(avg(joined.filter(x=>x.month==='May').map(x=>x.rsat))-avg(joined.filter(x=>x.month==='April').map(x=>x.rsat)))}`],['What is driving sentiment?',`Top correlation: ${topCorrelation(d)?.label||'N/A'}`],['Where should ops look first?',theme.label||'N/A'],['Which group needs follow-up?',`${d.filter(x=>x.risk==='High-Value At Risk').length} high-value riders at risk`]]);}
+function renderMoM(d){const rows=driverRows();barH('cMom',rows.map(x=>x.driver),rows.map(x=>round(x.change)), 'MoM pp change', true, false, rows.map(x=>`${x.driver}: ${pp(x.change)} | Apr ${pct(x.apr)} → May ${pct(x.may)} | April n=${x.nApr}, May n=${x.nMay}`));byId('momTable').innerHTML=table(['Driver','April','May','Change','Sample April','Sample May','Readout'],rows.map(r=>[r.driver,pct(r.apr),pct(r.may),pp(r.change),r.nApr,r.nMay,status(r.change)]));renderDetractorDrivers(d);}
+function renderDetractorDrivers(d){const det=d.filter(x=>finite(x.rsat)&&x.rsat<60);const all=d.filter(x=>finite(x.rsat));const defs=[['Daily Earnings','earnings'],['Enough Orders','enoughOrders'],['Shift Availability','shift'],['On-Time Delivery','onTime'],['Appeal Clarity','appealClear'],['Appeal Result','appealResult'],['Issue Support','support'],['Safety Support','safety'],['Salary Clarity','salary'],['3PL Support','threepl'],['Vendor Respect','vendor']];const rows=defs.map(([driver,k])=>{const detVals=det.map(x=>x[k]).filter(finite), allVals=all.map(x=>x[k]).filter(finite);return{driver,score:avg(detVals),overall:avg(allVals),gap:avg(detVals)-avg(allVals),n:detVals.length};}).filter(x=>finite(x.score)).sort((a,b)=>a.score-b.score);byId('detractorTable').innerHTML=table(['Detractor Pain Driver','Detractor Avg Score','Overall Avg','Gap vs Overall','Detractor Responses','Readout'],rows.map(r=>[r.driver,pct(r.score),pct(r.overall),pp(r.gap),r.n,r.score<50?'<span class="tag tr">Acute pain point</span>':r.score<65?'<span class="tag ty">Needs follow-up</span>':'<span class="tag tb">Monitor</span>']));}
+function driverRows(){const defs=[['RSAT','rsat'],['Daily Earnings','earnings'],['Enough Orders','enoughOrders'],['On-Time Delivery','onTime'],['Appeal Clarity','appealClear'],['Appeal Result','appealResult'],['Issue Support','support'],['Safety Support','safety'],['Salary Clarity','salary'],['3PL Support','threepl'],['Vendor Respect','vendor']];return defs.map(([driver,k])=>{const A=joined.filter(x=>x.month==='April'&&finite(x[k])),M=joined.filter(x=>x.month==='May'&&finite(x[k]));const apr=avg(A.map(x=>x[k])),may=avg(M.map(x=>x[k]));return{driver,key:k,apr,may,change:may-apr,nApr:A.length,nMay:M.length};}).sort((a,b)=>(b.change??-999)-(a.change??-999));}
+function renderPerformance(d){const matched=d.filter(x=>x.matched);const validBands=bandStats(matched,'validDays',[[0,8,'0–8 valid days'],[9,15,'9–15 valid days'],[16,19,'16–19 valid days'],[20,999,'20+ valid days']]);bar('cValidBand',validBands.labels,validBands.values,'Avg RSAT');const hourBands=bandStats(matched,'avgHoursCalendar',[[0,3,'<3 hrs/day'],[3,6,'3–6 hrs/day'],[6,9,'6–9 hrs/day'],[9,999,'9+ hrs/day']]);bar('cHourBand',hourBands.labels,hourBands.values,'Avg RSAT');
+const taskScatter=matched.filter(x=>finite(x.tasks)&&finite(x.rsat)).map(x=>({x:x.tasks,y:x.rsat,r:bub(x.avgHoursCalendar||0),label:`${x.riderId||'No Rider ID'} | ${x.partner||'Unknown Partner'} | Tasks: ${nfmt(x.tasks)} | Hours/day: ${nfmt(x.avgHoursCalendar)} | RSAT: ${pct(x.rsat)}`}));
+bubble('cTasks',taskScatter,'Delivered Tasks MTD','RSAT');
+const earningsOrderScatter=matched.filter(x=>finite(x.orders)&&finite(x.earnings)).map(x=>({x:x.orders,y:x.earnings,r:bub(x.avgHoursCalendar||0),label:`${x.riderId||'No Rider ID'} | ${x.partner||'Unknown Partner'} | Orders: ${nfmt(x.orders)} | Hours/day: ${nfmt(x.avgHoursCalendar)} | Earnings Satisfaction: ${pct(x.earnings)}`}));
+bubble('cEarnOrders',earningsOrderScatter,'Delivered Orders MTD','Earnings Satisfaction');}
+function renderShift(d){const may=d.filter(x=>x.month==='May'&&finite(x.shift));const rows=groups(may,x=>`${x.emirate}|||${x.zone}`).map(g=>({em:g.items[0].emirate,zone:g.items[0].zone,n:g.items.length,shift:avg(g.items.map(x=>x.shift)),rsat:avg(g.items.map(x=>x.rsat)),hours:avg(g.items.map(x=>x.avgHoursCalendar)),orders:avg(g.items.map(x=>x.orders)),valid:avg(g.items.map(x=>x.validRate)),sample:g.items.filter(x=>x.comment)[0]?.comment||''})).sort((a,b)=>(a.shift??999)-(b.shift??999));const chartRows=rows.filter(r=>finite(r.shift)).slice(0,20);barH('cShiftHours',chartRows.map(r=>`${r.em} | ${r.zone} (${r.n})`),chartRows.map(r=>round(r.shift)),'Shift Score',false,true);byId('zoneTable').innerHTML=table(['Rank','Emirate','Zone','Shift Score','RSAT','Avg Hours/Day','Avg Orders','Valid Rate','Responses','Sample Comment'],rows.map((r,i)=>[i+1,r.em,r.zone,pct(r.shift),pct(r.rsat),nfmt(r.hours),nfmt(r.orders),pct(r.valid),r.n,esc(short(r.sample,90))]));}
+function renderPartner(d){const rows=groups(d.filter(x=>x.partner&&x.partner!=='Unknown'),'partner').map(g=>({partner:g.key,n:g.items.length,rsat:avg(g.items.map(x=>x.rsat)),threepl:avg(g.items.map(x=>x.threepl)),hours:avg(g.items.map(x=>x.avgHoursCalendar)),orders:avg(g.items.map(x=>x.orders)),tasks:avg(g.items.map(x=>x.tasks)),valid:avg(g.items.map(x=>x.validRate)),low:div(g.items.filter(x=>x.rsat<60).length,g.items.length)*100,theme:topCount(g.items.filter(x=>!['No Comment','Positive / General'].includes(x.theme)),'theme').label||'N/A'})).sort((a,b)=>(b.threepl??-1)-(a.threepl??-1)||b.rsat-a.rsat||b.n-a.n);bubble('cPartner',rows.map(r=>({x:r.threepl||0,y:r.rsat||0,r:bub(r.n*5),label:`${r.partner} | ${r.n} responses | RSAT ${pct(r.rsat)} | 3PL ${pct(r.threepl)}`})),'3PL Support Score','RSAT');byId('partnerTable').innerHTML=table(['Partner','Responses','RSAT','3PL Support','Avg Orders','Avg Tasks','Avg Hours/Day','Valid Rate','Low RSAT %','Main Theme'],rows.map(r=>[r.partner,r.n,pct(r.rsat),pct(r.threepl),nfmt(r.orders),nfmt(r.tasks),nfmt(r.hours),pct(r.valid),pct(r.low),r.theme]));}
+function renderCorr(d){const rows=corrRows(d);barH('cCorr',rows.map(x=>`${x.label} (${round(x.corr,2)})`),rows.map(x=>round(x.corr,2)),'Correlation',false);const top=rows[0];byId('corrInsight').innerHTML=top?`Strongest relationship in current view: <b>${top.label}</b> with RSAT (r=${round(top.corr,2)}). Use this to prioritize operating levers, not as proof of causality.`:'Not enough numeric matched data for correlation. Check Rider ID matching.';byId('corrTable').innerHTML=table(['Driver / Behavior','Correlation with RSAT','Strength'],rows.map(r=>[r.label,round(r.corr,2),strength(r.corr)]));}
+function corrRows(d){const defs=[['Earnings Satisfaction','earnings'],['Enough Orders','enoughOrders'],['Shift Availability','shift'],['Issue Support','support'],['3PL Support','threepl'],['Salary Clarity','salary'],['Safety Support','safety'],['Delivered Orders','orders'],['Delivered Tasks','tasks'],['Avg Hours / Day','avgHoursCalendar'],['Valid Day Rate','validRate'],['Orders per Online Hour','productivity']];return defs.map(([label,k])=>{const pairs=d.filter(x=>finite(x.rsat)&&finite(x[k])).map(x=>[x.rsat,x[k]]);return{label,corr:corr(pairs.map(x=>x[0]),pairs.map(x=>x[1])),n:pairs.length};}).filter(x=>finite(x.corr)).sort((a,b)=>Math.abs(b.corr)-Math.abs(a.corr));}
+function topCorrelation(d){return corrRows(d)[0];}
+function renderThemes(d){const tv=groups(d.filter(x=>x.theme&&x.theme!=='No Comment'),'theme').map(g=>({label:g.key,n:g.items.length,avg:avg(g.items.map(x=>x.rsat))})).sort((a,b)=>b.n-a.n);bar('cThemeVol',tv.map(x=>x.label),tv.map(x=>x.n),'Comments',{onClick:(e,els)=>{if(els.length){selectedTheme=tv[els[0].index].label;byId('themeFilter').value='All';renderAll();}},tooltipRows:tv.map(x=>`${x.label}: ${x.n} comments | Avg RSAT ${pct(x.avg)}`)});const sev=tv.slice().sort((a,b)=>a.avg-b.avg);bar('cThemeSev',sev.map(x=>x.label),sev.map(x=>round(x.avg)),'Avg RSAT',{tooltipRows:sev.map(x=>`${x.label}: Avg RSAT ${pct(x.avg)} across ${x.n} comments`)});const rows=d.filter(x=>x.comment&&x.matched&&x.riderId&&x.riderId!=='0'&&x.partner!=='0').sort((a,b)=>(a.rsat||999)-(b.rsat||999)).slice(0,500);byId('themeTable').innerHTML=table(['Month','Rider ID','Partner','City','Zone','RSAT','Orders','Valid Days','Segment','Theme','Exact Rider Comment'],rows.map(x=>[x.month,x.riderId,x.partner,x.emirate,x.zone,pct(x.rsat),nfmt(x.orders),nfmt(x.validDays),x.segment,x.theme,esc(short(x.comment,220))]));}
+function renderRisk(d){const priority={'High-Value At Risk':1,'High Risk':2,'Operationally Blocked':3,'Watchlist':4,'Stable':5,'Unmatched':9};const risky=d.filter(x=>x.matched&&x.risk!=='Stable'&&x.riderId&&x.riderId!=='0').sort((a,b)=>(priority[a.risk]||9)-(priority[b.risk]||9)||(b.orders||0)-(a.orders||0));byId('riskTable').innerHTML=table(['Risk','Month','Rider ID','Partner','City','Zone','RSAT','Shift','Orders','Tasks','Valid Days','Hours/Day','Theme'],risky.map(x=>[riskTag(x.risk),x.month,x.riderId,x.partner,x.emirate,x.zone,pct(x.rsat),x.month==='April'?'Not asked':pct(x.shift),nfmt(x.orders),nfmt(x.tasks),nfmt(x.validDays),nfmt(x.avgHoursCalendar),x.theme]));}
+function renderQuality(d){const total=joined.length, matched=joined.filter(x=>x.matched).length, missId=joined.filter(x=>!x.riderId).length, badPhone=joined.filter(x=>x.phone==='not in record'||!x.phone).length, partners=uniq(joined.map(x=>x.partner)).length, perfRiders=perfMap.size;byId('qualityTable').innerHTML=table(['Check','Result','Readout'],[['Survey responses normalized',total,'April and May converted to one analysis table'],['Daily Valid riders loaded',perfRiders,perfRows.length?'Performance file read successfully':'Not uploaded'],['Matched by Rider ID',`${matched} (${pct(div(matched,total)*100)})`,matched?'Performance charts are credible':'No behavior linkage possible without Rider ID'],['Missing Rider ID in NPS',missId,missId?'Fix NPS lookup columns / paste values':'Good'],['Invalid / missing phone',badPhone,'Kept in NPS scores, excluded from phone-based QA'],['Partner values detected',partners,partners>1?'Partner view is available':'Partner field missing or unresolved']]);const un=joined.filter(x=>!x.matched||!x.riderId).slice(0,400);byId('unmatchedTable').innerHTML=table(['Month','Row','Raw Phone','Cleaned Phone','Rider ID','Partner','City','Zone','Reason'],un.map(x=>[x.month,x.row,x.rawPhone,x.phone||'',x.riderId||'Missing',x.partner,x.emirate,x.zone,!x.riderId?'NPS Rider ID missing / #NAME?':'Rider ID not found in Daily Valid']));}
+
+function chart(id,type,data,options={}){if(charts[id])charts[id].destroy();
+ const textColor=getComputedStyle(document.body).getPropertyValue('--text');
+ const mutedColor=getComputedStyle(document.body).getPropertyValue('--muted');
+ const isHorizontal=options.indexAxis==='y';
+ const hasCategoryLabels=Array.isArray(data.labels);
+ const defaultScales=options.noScale?undefined:{
+  x:{title:{display:!!options.xTitle,text:options.xTitle,font:{weight:'bold'}},ticks:{color:mutedColor,autoSkip:false,callback:function(v){if(isHorizontal)return options.xPercent?`${v}%`:v;return hasCategoryLabels?(data.labels?.[v]??v):(options.xPercent?`${v}%`:v);}},grid:{color:'rgba(148,163,184,.18)'}},
+  y:{title:{display:!!options.yTitle,text:options.yTitle,font:{weight:'bold'}},ticks:{color:mutedColor,autoSkip:false,callback:function(v){return isHorizontal?(data.labels?.[v]??v):(options.yPercent?`${v}%`:v)}},grid:{color:'rgba(148,163,184,.18)'}}
+ };
+ const tooltipCb=(ctx)=>{if(ctx.raw?.label)return ctx.raw.label;if(ctx.dataset.tipRows)return ctx.dataset.tipRows[ctx.dataIndex];if(ctx.dataset.pcts){const pctVal=ctx.dataset.pcts[ctx.dataIndex];return `${ctx.dataset.label}: ${pctVal}% (${ctx.raw} responses)`;}return `${ctx.dataset.label||''}: ${ctx.formattedValue}`};
+ charts[id]=new Chart(byId(id),{type,data,options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},plugins:{legend:{labels:{usePointStyle:true,color:textColor}},tooltip:{callbacks:{label:tooltipCb}}},scales:options.scales||defaultScales,...options}});
+}
+function line(id,labels,_,datasets,yTitle){chart(id,'line',{labels,datasets},{yTitle,yPercent:true});}
+function bar(id,labels,data,label,extra={}){const ds={label,data,backgroundColor:C.green,borderRadius:9};if(extra.tooltipRows)ds.tipRows=extra.tooltipRows;chart(id,'bar',{labels,datasets:[ds]},{yTitle:label,yPercent:label.includes('RSAT')||label.includes('Score')||label.includes('Satisfaction'),...extra});}
+function barH(id,labels,data,label,colorBySign,asPercent=false,tooltips=null){const ds={label,data,backgroundColor:colorBySign?data.map(x=>x>=0?C.green:C.red):C.green,borderRadius:9};if(tooltips)ds.tipRows=tooltips;chart(id,'bar',{labels,datasets:[ds]},{indexAxis:'y',xTitle:label,xPercent:asPercent});}
+function stack(id,labels,datasets,asShare=false){let final=datasets;if(asShare){const totals=labels.map((_,i)=>datasets.reduce((s,ds)=>s+(ds.data[i]||0),0));final=datasets.map(ds=>({...ds,pcts:ds.data.map((v,i)=>round(div(v,totals[i])*100,1))}));}chart(id,'bar',{labels,datasets:final},{scales:{x:{stacked:true,grid:{color:'rgba(148,163,184,.18)'}},y:{stacked:true,title:{display:true,text:asShare?'Responses':'Responses',font:{weight:'bold'}},grid:{color:'rgba(148,163,184,.18)'}}},yTitle:'Responses'});}
+function bubble(id,data,xTitle,yTitle){chart(id,'bubble',{datasets:[{label:'Riders',data,backgroundColor:'rgba(17,204,154,.22)',borderColor:C.green}]},{xTitle,yTitle,yPercent:yTitle.includes('Score')||yTitle.includes('RSAT')||yTitle.includes('Satisfaction')});}
+function doughnut(id,labels,data){chart(id,'doughnut',{labels,datasets:[{data,backgroundColor:[C.green,C.yellow,C.red,C.blue,C.amber,C.gray]}]},{noScale:true,plugins:{legend:{position:'bottom'}}});}
+
+function exportViewOnlyHTML(){
+ if(!joined.length){alert('Upload and build the dashboard first.');return;}
+ const html=document.documentElement.outerHTML.replace('</body>', `<script>window.__STATIC_JOINED__=${JSON.stringify(joined)};window.__STATIC_MODE__=true;<\\/script></body>`);
+ const blob=new Blob(['<!DOCTYPE html>\n'+html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='voice-of-the-market-rider-nps-view-only.html';a.click();URL.revokeObjectURL(a.href);
+}
+function bandStats(data,key,bands){const labels=[],values=[];bands.forEach(([lo,hi,label])=>{const items=data.filter(x=>finite(x[key])&&x[key]>=lo&&x[key]<=hi);labels.push(`${label} (${items.length})`);values.push(round(avg(items.map(x=>x.rsat))));});return{labels,values};}
+function table(headers,rows){return `<table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map(c=>`<td>${c??''}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No data available for this filter.</td></tr>`}</tbody></table>`;}
+function status(v){return v>2?'<span class="tag tg">Improved</span>':v<-2?'<span class="tag tr">Declined</span>':'<span class="tag ty">Stable</span>'}function strength(c){const a=Math.abs(c);return a>=.6?'<span class="tag tg">Strong</span>':a>=.35?'<span class="tag ty">Medium</span>':'<span class="tag tb">Weak / directional</span>'}function riskTag(x){return `<span class="tag ${x.includes('Risk')?'tr':x.includes('Blocked')?'ty':'tb'}">${esc(x)}</span>`}
+function groups(data,key){const fn=typeof key==='function'?key:(x=>x[key]);const m=new Map();data.forEach(x=>{const k=fn(x)||'Unknown';if(!m.has(k))m.set(k,[]);m.get(k).push(x)});return[...m.entries()].map(([key,items])=>({key,items}));}
+function topCount(data,key){const g=groups(data,key).map(x=>({label:x.key,count:x.items.length})).sort((a,b)=>b.count-a.count);return g[0]||{label:'',count:0};}
+function corr(xs,ys){if(xs.length<3||xs.length!==ys.length)return null;const mx=avg(xs),my=avg(ys);let n=0,dx=0,dy=0;for(let i=0;i<xs.length;i++){const a=xs[i]-mx,b=ys[i]-my;n+=a*b;dx+=a*a;dy+=b*b;}return dx&&dy?n/Math.sqrt(dx*dy):null;}
+function score(x,max){const n=num(x);return n===null?null:Math.max(0,Math.min(100,n/max*100));}function num(x){if(x===''||x==null)return null;if(typeof x==='number')return isFinite(x)?x:null;const n=parseFloat(String(x).replace(/,/g,''));return isNaN(n)?null:n}function finite(x){return typeof x==='number'&&isFinite(x)}function avg(a){const b=a.filter(finite);return b.length?b.reduce((x,y)=>x+y,0)/b.length:null}function div(a,b){return finite(a)&&finite(b)&&b!==0?a/b:0}function round(x,d=1){return finite(x)?Number(x.toFixed(d)):null}function pct(x){return finite(x)?`${round(x)}%`:'N/A'}function pp(x){return finite(x)?`${x>=0?'+':''}${round(x)} pp`:'N/A'}function nfmt(x){return finite(x)?round(x):'N/A'}
+function v(r,i){return i>=0?r[i]:''}function txt(x){const s=String(x??'').trim();return !s||['#NAME?','#N/A','nan'].includes(s.toLowerCase())?'':s}function cleanId(x){let s=txt(x).replace(/\.0$/,'').trim();s=s.replace(/[^0-9A-Za-z_-]/g,'');return s==='0'?'':s}function phone(x){let s=String(x??'').replace(/\D/g,'');if(s.startsWith('971'))s=s.slice(3);if(s.startsWith('0'))s=s.slice(1);return s.length===9?s:(s?'not in record':'')}function dateKey(x){if(!x)return'';if(x instanceof Date&&!isNaN(x))return x.toISOString().slice(0,10);let s=String(x).trim();if(/^\d{8}$/.test(s))return s;const n=Number(s);if(n>20000&&n<90000){const d=XLSX.SSF.parse_date_code(n);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}if(/^\d{4}\d{2}\d{2}/.test(s))return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;return s}
+function theme(t){t=String(t||'').toLowerCase();if(!t.trim())return'No Comment';
+ const rules=[
+  ['Appeals & Disputes',['appeal','appeel','apil','apeal','appiel','penalty','palenty','suspension','suspend','block','unblock','fine','violation','deduction','wrong deduction','case','complain','complaint']],
+  ['Shift Planning',['shift','shifts','shifft','sift','schedule','slot','timing','roster','pasand','pick-up too much long','pickup too long']],
+  ['Pricing & Earnings',['salary','fix salary','earning','earnings','payment','income','bonus','incentive','distance','rate','money','pay','kamai','fuel','settlement']],
+  ['Order Volume',['order','orders','demand','volume','no order','low order','more order','less order']],
+  ['Support',['support','help','response','responce','resolve','tt','ticket','call center','query','service center']],
+  ['Safety & Weather',['safety','safe','heat','summer','rain','accident','traffic','helmet','weather']],
+  ['App / Product',['app','application','gps','map','login','green dot','technical','system','network','location','bug']],
+  ['Vendor / Restaurant',['vendor','restaurant','merchant','waiting','wait','respect','pickup','food ready']],
+  ['Training & Communication',['training','clear','communication','explain','rules','guideline','understand','information','update']]
+ ];
+ for(const [k,words] of rules)if(words.some(w=>t.includes(w)))return k;
+ if(['good','best','happy','excellent','great','nice','love','ok','perfect'].some(w=>t.includes(w)))return'Positive / General';
+ return'Other'}function sentiment(score,comment){if(score>=80)return'Positive';if(score<60)return'Negative';return String(comment||'').match(/problem|issue|less|low|bad|delay|difficult/i)?'Negative':'Neutral'}
+function quantiles(a){a=a.sort((x,y)=>x-y);if(!a.length)return{min:0,max:0,q25:0,q75:0};return{min:a[0],max:a[a.length-1],q25:q(a,.25),q75:q(a,.75)}}function q(a,p){const pos=(a.length-1)*p,b=Math.floor(pos),r=pos-b;return a[b+1]!==undefined?a[b]+r*(a[b+1]-a[b]):a[b]}function normRange(v,range){if(!finite(v))return 0;if(range.max===range.min)return 50;return (v-range.min)/(range.max-range.min)*100}function bub(x){return Math.max(4,Math.min(23,Math.sqrt(Math.max(0,x||0))*1.7))}function uniq(a){return[...new Set(a)].sort((x,y)=>String(x).localeCompare(String(y)))}function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ')}function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}function short(s,n){s=String(s??'');return s.length>n?s.slice(0,n-1)+'…':s}function colName(n){let s='';n++;while(n){let m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
+
+
+if(window.__STATIC_JOINED__&&Array.isArray(window.__STATIC_JOINED__)){joined=window.__STATIC_JOINED__;byId('npsFile').closest('.upload').style.display='none';byId('perfFile').closest('.upload').style.display='none';byId('mappingToggle').style.display='none';byId('exportStatic').style.display='none';setStatus('View-only mode');setupFilters();renderDashboard();}
+
+document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{
+if(window.__STATIC_JOINED__&&Array.isArray(window.__STATIC_JOINED__)){joined=window.__STATIC_JOINED__;byId('npsFile').closest('.upload').style.display='none';byId('perfFile').closest('.upload').style.display='none';byId('mappingToggle').style.display='none';byId('exportStatic').style.display='none';setStatus('View-only mode');setupFilters();renderDashboard();}
+
+document.querySelectorAll('.tabbtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');byId(b.dataset.tab).classList.add('active');});
+['monthFilter','emirateFilter','zoneFilter','partnerFilter','segmentFilter','themeFilter'].forEach(id=>byId(id).innerHTML='<option>All</option>');
+</script>
+</body>
+</html>
